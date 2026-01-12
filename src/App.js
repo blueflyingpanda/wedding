@@ -2,6 +2,8 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useRef, useState } from 'react';
 
 export default function WeddingInvitation() {
+  const FRONT_IMG = process.env.PUBLIC_URL + '/front.jpg';
+  const BACK_IMG = process.env.PUBLIC_URL + '/back.jpg';
   const [isFlipped, setIsFlipped] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const cardRef = useRef(null);
@@ -145,7 +147,7 @@ export default function WeddingInvitation() {
                 }}
               >
                 <img
-                  src="/front.jpg"
+                  src={FRONT_IMG}
                   alt="Wedding Invitation Front"
                   className="w-full h-full object-cover"
                 />
@@ -173,7 +175,7 @@ export default function WeddingInvitation() {
                 }}
               >
                 <img
-                  src="/back.jpg"
+                  src={BACK_IMG}
                   alt="Wedding Invitation Back"
                   className="w-full h-full object-cover"
                 />
