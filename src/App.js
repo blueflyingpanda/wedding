@@ -214,7 +214,7 @@ export default function WeddingInvitation() {
             }}
           >
             <motion.div
-              className="relative w-[300px] h-[450px] md:w-[400px] md:h-[600px]"
+              className="relative w-[375px] h-[562px] md:w-[500px] md:h-[750px]"
               style={{
                 transformStyle: "preserve-3d",
               }}
