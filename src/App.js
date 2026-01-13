@@ -1,15 +1,33 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function WeddingInvitation() {
   const FRONT_BG = process.env.PUBLIC_URL + '/bg.png';
   const FRONT_CARD = process.env.PUBLIC_URL + '/card.png';
   const FRONT_LOVERS = process.env.PUBLIC_URL + '/lovers.png';
   const BACK_IMG = process.env.PUBLIC_URL + '/back.jpg';
+  const SONG = process.env.PUBLIC_URL + '/song.mp3';
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(true);
   const cardRef = useRef(null);
+  const audioRef = useRef(null);
+
+  const handlePlayMusic = () => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      audioRef.current.play();
+      setShowPlayButton(false);
+    }
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   // Parallax effect
   const x = useMotionValue(0);
@@ -69,6 +87,58 @@ export default function WeddingInvitation() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
+      {/* Background music */}
+      <audio ref={audioRef} src={SONG} loop />
+
+      {/* Play Music Button - shows on first load */}
+      {showPlayButton && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.button
+            onClick={handlePlayMusic}
+            className="bg-white rounded-full px-8 py-4 shadow-2xl flex items-center gap-3 hover:bg-rose-50 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span className="text-lg font-semibold text-gray-800">Пойти на свадьбу</span>
+          </motion.button>
+        </motion.div>
+      )}
+
+      {/* Mute/Unmute button */}
+      {!showPlayButton && (
+        <motion.button
+          onClick={() => setIsMuted(!isMuted)}
+          className="fixed top-6 right-6 z-50 bg-white/80 backdrop-blur-sm rounded-full p-4 shadow-lg hover:bg-white transition-colors"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          {isMuted ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+          )}
+        </motion.button>
+      )}
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
