@@ -12,15 +12,44 @@ export default function WeddingInvitation() {
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [orientationPermission, setOrientationPermission] = useState(false);
   const cardRef = useRef(null);
   const audioRef = useRef(null);
 
-  const handlePlayMusic = () => {
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handlePlayMusic = async () => {
+    // Start music
     if (audioRef.current) {
       audioRef.current.volume = 0.5;
       audioRef.current.play();
-      setShowPlayButton(false);
     }
+
+    // Request device orientation permission on iOS 13+ and other browsers that require it
+    if (isMobile && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          setOrientationPermission(true);
+        }
+      } catch (error) {
+        console.log('Device orientation permission denied or not supported');
+      }
+    } else if (isMobile && typeof DeviceOrientationEvent !== 'undefined') {
+      // For Android and browsers that don't require explicit permission
+      setOrientationPermission(true);
+    }
+
+    setShowPlayButton(false);
   };
 
   useEffect(() => {
@@ -33,19 +62,21 @@ export default function WeddingInvitation() {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  // Different rotation intensities for each layer
-  const rotateX = useTransform(y, [-300, 300], [10, -10]);
-  const rotateY = useTransform(x, [-300, 300], [-10, 10]);
+  // Different rotation intensities based on device orientation support
+  const hasOrientation = isMobile && orientationPermission;
+
+  const rotateX = useTransform(y, [-300, 300], hasOrientation ? [20, -20] : [10, -10]);
+  const rotateY = useTransform(x, [-300, 300], hasOrientation ? [-20, 20] : [-10, 10]);
 
   // Layer-specific transforms for depth
-  const bgX = useTransform(x, [-300, 300], [-3, 3]);
-  const bgY = useTransform(y, [-300, 300], [-3, 3]);
+  const bgX = useTransform(x, [-300, 300], hasOrientation ? [-6, 6] : [-3, 3]);
+  const bgY = useTransform(y, [-300, 300], hasOrientation ? [-6, 6] : [-3, 3]);
 
-  const cardX = useTransform(x, [-300, 300], [-7, 7]);
-  const cardY = useTransform(y, [-300, 300], [-7, 7]);
+  const cardX = useTransform(x, [-300, 300], hasOrientation ? [-14, 14] : [-7, 7]);
+  const cardY = useTransform(y, [-300, 300], hasOrientation ? [-14, 14] : [-7, 7]);
 
-  const loversX = useTransform(x, [-300, 300], [-5, 5]);
-  const loversY = useTransform(y, [-300, 300], [-5, 5]);
+  const loversX = useTransform(x, [-300, 300], hasOrientation ? [-10, 10] : [-5, 5]);
+  const loversY = useTransform(y, [-300, 300], hasOrientation ? [-10, 10] : [-5, 5]);
 
   const springConfig = { stiffness: 300, damping: 30 };
   const springRotateX = useSpring(rotateX, springConfig);
@@ -60,7 +91,37 @@ export default function WeddingInvitation() {
   const springLoversX = useSpring(loversX, springConfig);
   const springLoversY = useSpring(loversY, springConfig);
 
+  // Device orientation handler
+  useEffect(() => {
+    if (!isMobile || !orientationPermission) return;
+
+    const handleOrientation = (event) => {
+      // Beta: front-to-back tilt (-180 to 180)
+      // Gamma: left-to-right tilt (-90 to 90)
+      const beta = event.beta || 0;  // front-to-back
+      const gamma = event.gamma || 0; // left-to-right
+
+      // Map device orientation to similar range as mouse movement (-300 to 300)
+      // Beta controls Y axis (up/down tilt)
+      // Gamma controls X axis (left/right tilt)
+
+      // Normalize and scale the values
+      const normalizedY = (beta / 90) * 300; // -300 to 300 range
+      const normalizedX = (gamma / 90) * 300; // -300 to 300 range
+
+      x.set(normalizedX);
+      y.set(normalizedY);
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, [isMobile, orientationPermission, x, y]);
+
   const handleMouseMove = (e) => {
+    if (isMobile) return; // Skip mouse events on mobile
     if (!cardRef.current) return;
 
     const rect = cardRef.current.getBoundingClientRect();
@@ -72,6 +133,7 @@ export default function WeddingInvitation() {
   };
 
   const handleMouseLeave = () => {
+    if (isMobile) return; // Skip mouse events on mobile
     x.set(0);
     y.set(0);
   };
