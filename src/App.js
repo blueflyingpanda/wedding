@@ -2,8 +2,11 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useRef, useState } from 'react';
 
 export default function WeddingInvitation() {
-  const FRONT_IMG = process.env.PUBLIC_URL + '/front.jpg';
+  const FRONT_BG = process.env.PUBLIC_URL + '/bg.png';
+  const FRONT_CARD = process.env.PUBLIC_URL + '/card.png';
+  const FRONT_LOVERS = process.env.PUBLIC_URL + '/lovers.png';
   const BACK_IMG = process.env.PUBLIC_URL + '/back.jpg';
+
   const [isFlipped, setIsFlipped] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const cardRef = useRef(null);
@@ -12,12 +15,32 @@ export default function WeddingInvitation() {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  const rotateX = useTransform(y, [-300, 300], [15, -15]);
-  const rotateY = useTransform(x, [-300, 300], [-15, 15]);
+  // Different rotation intensities for each layer
+  const rotateX = useTransform(y, [-300, 300], [10, -10]);
+  const rotateY = useTransform(x, [-300, 300], [-10, 10]);
+
+  // Layer-specific transforms for depth
+  const bgX = useTransform(x, [-300, 300], [-3, 3]);
+  const bgY = useTransform(y, [-300, 300], [-3, 3]);
+
+  const cardX = useTransform(x, [-300, 300], [-7, 7]);
+  const cardY = useTransform(y, [-300, 300], [-7, 7]);
+
+  const loversX = useTransform(x, [-300, 300], [-5, 5]);
+  const loversY = useTransform(y, [-300, 300], [-5, 5]);
 
   const springConfig = { stiffness: 300, damping: 30 };
   const springRotateX = useSpring(rotateX, springConfig);
   const springRotateY = useSpring(rotateY, springConfig);
+
+  const springBgX = useSpring(bgX, springConfig);
+  const springBgY = useSpring(bgY, springConfig);
+
+  const springCardX = useSpring(cardX, springConfig);
+  const springCardY = useSpring(cardY, springConfig);
+
+  const springLoversX = useSpring(loversX, springConfig);
+  const springLoversY = useSpring(loversY, springConfig);
 
   const handleMouseMove = (e) => {
     if (!cardRef.current) return;
@@ -138,7 +161,7 @@ export default function WeddingInvitation() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {/* Front side */}
+              {/* Front side with parallax layers */}
               <motion.div
                 className="absolute w-full h-full rounded-lg shadow-2xl overflow-hidden"
                 style={{
@@ -146,15 +169,59 @@ export default function WeddingInvitation() {
                   boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
                 }}
               >
-                <img
-                  src={FRONT_IMG}
-                  alt="Wedding Invitation Front"
-                  className="w-full h-full object-cover"
-                />
+                {/* Background layer - moves slowest */}
+                <motion.div
+                  className="absolute w-full h-full"
+                  style={{
+                    x: springBgX,
+                    y: springBgY,
+                    scale: 1,
+                  }}
+                >
+                  <img
+                    src={FRONT_BG}
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+
+                {/* Lovers layer - moves medium */}
+                <motion.div
+                  className="absolute w-full h-full"
+                  style={{
+                    x: springLoversX,
+                    y: springLoversY,
+                    scale: 1.2,
+                  }}
+                >
+                  <img
+                    src={FRONT_LOVERS}
+                    alt="Couple"
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+
+                {/* Card frame layer -  moves fastest (most depth)*/}
+                <motion.div
+                  className="absolute w-full h-full"
+                  style={{
+                    x: springCardX,
+                    y: springCardY,
+                    z: 20,
+                  }}
+                >
+                  <img
+                    src={FRONT_CARD}
+                    alt="Card Frame"
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+
+
 
                 {/* Shine effect */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"
                   initial={{ x: "-100%" }}
                   animate={{ x: "200%" }}
                   transition={{
