@@ -175,7 +175,7 @@ export default function WeddingInvitation() {
                   style={{
                     x: springBgX,
                     y: springBgY,
-                    scale: 1,
+                    scale: 1.05,
                   }}
                 >
                   <img
@@ -191,7 +191,7 @@ export default function WeddingInvitation() {
                   style={{
                     x: springLoversX,
                     y: springLoversY,
-                    scale: 1.2,
+                    scale: 1.05,
                   }}
                 >
                   <img
@@ -207,7 +207,7 @@ export default function WeddingInvitation() {
                   style={{
                     x: springCardX,
                     y: springCardY,
-                    z: 20,
+                    scale: 1.05,
                   }}
                 >
                   <img
@@ -216,8 +216,6 @@ export default function WeddingInvitation() {
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
-
-
 
                 {/* Shine effect */}
                 <motion.div
